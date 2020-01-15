@@ -1,0 +1,25 @@
+{
+  "name": "devradar",
+  "version": "1.0.0",
+  "description": "OmniStack Week #10",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodgeraraujo/DevRadar.git"
+  },
+  "author": "rodgeraraujo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rodgeraraujo/DevRadar/issues"
+  },
+  "homepage": "https://github.com/rodgeraraujo/DevRadar#readme",
+  "dependencies": {
+    "axios": "^0.19.1",
+    "express": "^4.17.1",
+    "mongoose": "^5.8.7",
+    "nodemon": "^2.0.2"
+  }
+}
