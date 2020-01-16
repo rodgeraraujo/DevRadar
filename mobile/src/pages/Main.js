@@ -66,7 +66,7 @@ function Main({ navigation }) {
           </Callout>
         </Marker>
       </MapView>
-      <View style={styles.searchForm}>
+      <View style={[styles.searchForm, (keyboardShown ? styles.searchTop : styles.searchBottom)]}>
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar devs por techs..."
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 4,
+    borderWidth: 4,
     borderColor: "#FFF"
   },
   callout: {
@@ -106,12 +107,15 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   searchForm: {
-      position: 'absolute',
-      bottom: 20,
-      left: 20,
-      right: 20,
-      zIndex: 5,
-      flexDirection: 'row'
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    zIndex: 5,
+    flexDirection: 'row'
+  },
+  searchTop: {
+    bottom: 350
   },
   searchInput: {
     flex: 1,
