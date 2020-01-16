@@ -2,14 +2,13 @@ const Dev = require('../models/Dev')
 const parseStringAsArray = require('../utils/parseStringAsArray')
 
 module.exports = {
-    async index(request, response) {
+    // raio 10km + filtro de techs
+    async index(request, response) { 
         const { longitude, latitude, techs } = request.query
-
-        const techsArray = parseStringAsArray(techs)
 
         const devs = await Dev.find({
             techs: {
-                $in: techsArray
+                $in: parseStringAsArray(techs)
             },
             location: {
                 $near: {
@@ -22,6 +21,6 @@ module.exports = {
             }
         })
 
-        response.json(devs)
+        response.json({devs})
     }
 }
