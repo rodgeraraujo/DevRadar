@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Image, View, Text, TextInput, TouchableOpacity, Keyboard } from "react-native";
+import {
+  StyleSheet,
+  Image,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Keyboard
+} from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
-import { requestPermissionsAsync, getCurrentPositionAsync } from "expo-location";
+import {
+  requestPermissionsAsync,
+  getCurrentPositionAsync
+} from "expo-location";
 import { MaterialIcons } from "@expo/vector-icons";
 
+import api from "../services/api";
+
 function Main({ navigation }) {
+  const [devs, setDevs] = useState([]);
+  const [techs, setTechs] = useState('');
   const [currentRegion, setCurrentRegion] = useState(null);
+  const [searching, setSearching] = useState(false);
   const [keyboardShown, setKeyboardShown] = useState(false);
 
   useEffect(() => {
@@ -29,9 +45,34 @@ function Main({ navigation }) {
     }
     loadInitialPostiion();
 
-    Keyboard.addListener('keyboardDidShow', ()=>setKeyboardShown(true));
-    Keyboard.addListener('keyboardDidHide', ()=>setKeyboardShown(false));
+    Keyboard.addListener("keyboardDidShow", () => setKeyboardShown(true));
+    Keyboard.addListener("keyboardDidHide", () => setKeyboardShown(false));
   }, []);
+
+  async function loadDevs() {
+    if (searching) {
+      return;
+    }
+    setSearching(true);
+
+    const { latitude, longitude } = currentRegion;
+
+    const apiResponse = await api.get("/search", {
+      params: {
+        latitude,
+        longitude,
+        techs
+      }
+    });
+
+    setDevs(apiResponse.data.devs);
+    setSearching(false);
+  }
+
+  function handleRegionChange(region) {
+    setCurrentRegion(region);
+    console.log(region);
+  }
 
   if (!currentRegion) {
     return null;
@@ -39,42 +80,57 @@ function Main({ navigation }) {
 
   return (
     <>
-      <MapView initialRegion={currentRegion} style={styles.map}>
-        <Marker coordinate={{ latitude: -6.890072, longitude: -38.57384 }}>
-          <Image
-            style={styles.avatar}
-            source={{
-              uri: "https://avatars0.githubusercontent.com/u/20842252?v=4"
-            }}
-          />
-          <Callout
-            onPress={() => {
-              // navegação
-              navigation.navigate("Profile", {
-                github_username: "rodgeraraujo"
-              });
+      <MapView
+        onRegionChangeComplete={handleRegionChange}
+        initialRegion={currentRegion}
+        style={styles.map}
+      >
+        {devs.map(dev => (
+          <Marker
+            key={dev._id} 
+            coordinate={{ 
+              longitude: dev.location.coordinates[0],
+              latitude: dev.location.coordinates[1],
             }}
           >
-            <View style={styles.callout}>
-              <Text style={styles.devName}>Rogério Araújo</Text>
-              <Text style={styles.devBio}>
-                Analysis and Systems Development Student at @ifpb-cajazeiras.
-                Co-founder of @pyro-code.
-              </Text>
-              <Text style={styles.devTechs}>VueJS, NodeJS, JavaScript</Text>
-            </View>
-          </Callout>
-        </Marker>
+            <Image
+              style={styles.avatar}
+              source={{ uri: dev.avatar_url }}
+            />
+            <Callout
+              onPress={() => {
+                // navegação
+                navigation.navigate("Profile", {
+                  github_username: dev.github_username
+                });
+              }}
+            >
+              <View style={styles.callout}>
+                <Text style={styles.devName}>{dev.name}</Text>
+                <Text style={styles.devBio}>{dev.bio}</Text>
+                <Text style={styles.devTechs}>{dev.techs.join(', ')}</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
       </MapView>
-      <View style={[styles.searchForm, (keyboardShown ? styles.searchTop : styles.searchBottom)]}>
+      <View
+        style={[
+          styles.searchForm,
+          keyboardShown ? styles.searchBottom : styles.searchTop
+        ]}
+      >
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar devs por techs..."
           autoCapitalize="words"
           autoCorrect={false}
+          value={techs}
+          onChangeText={setTechs}
         />
-        <TouchableOpacity onPress={() => {}} style={styles.loadButton}>
-            <MaterialIcons name="my-location" size={20} color={'#FFF'}/>
+        <TouchableOpacity onPress={loadDevs} disabled={searching} style={styles.loadButton}>
+          {!searching && <MaterialIcons name="my-location" size={20} color="#FFF" />}
+          { searching && <MaterialIcons name="gps-not-fixed" size={20} color="#FFF" />}
         </TouchableOpacity>
       </View>
     </>
@@ -107,39 +163,42 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   searchForm: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     left: 20,
     right: 20,
     zIndex: 5,
-    flexDirection: 'row'
+    flexDirection: "row"
   },
   searchTop: {
-    bottom: 350
+    bottom: 20
+  },
+  searchBottom: {
+    bottom: 360
   },
   searchInput: {
     flex: 1,
     height: 50,
-    backgroundColor: '#FFF',
-    color: '#333',
+    backgroundColor: "#FFF",
+    color: "#333",
     borderRadius: 25,
     paddingHorizontal: 20,
     fontSize: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
-        width: 4,
-        height: 4,
+      width: 4,
+      height: 4
     },
-    elevation: 2,
+    elevation: 2
   },
   loadButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#8E4DFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 15,
+    backgroundColor: "#8E4DFF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 15
   }
 });
 
