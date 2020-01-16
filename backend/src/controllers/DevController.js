@@ -17,9 +17,11 @@ module.exports = {
         if (!dev) {
             const githubResponse = await axios.get(`https://api.github.com/users/${github_username}`)
 
-            const { name = login, avatar_url, bio } = githubResponse.data
+            let { name, avatar_url, bio } = githubResponse.data
 
             const techsArray = parseStringAsArray(techs)
+
+            if(!name) name = githubResponse.data.login
 
             dev = await Dev.create({
                 github_username,
